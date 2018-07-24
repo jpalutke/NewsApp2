@@ -1,5 +1,6 @@
 package com.crystaltowerdesigns.newsapp;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -12,13 +13,17 @@ import java.net.UnknownHostException;
 
 class HttpHandler {
 
-    public HttpHandler() {
+    private Context context;
+
+    public HttpHandler(Context context) {
+        this.context = context;
     }
 
     public String makeHttpRequest(URL url) throws IOException {
         String jsonResponse = "";
         HttpURLConnection urlConnection = null;
         InputStream inputStream = null;
+
         //noinspection finally
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -30,8 +35,8 @@ class HttpHandler {
             // if we did not receive an OK response from the urlConnection,
             // store it as an error contained in the jsonResponse and return it
             int serverResponse = urlConnection.getResponseCode();
-            if (serverResponse != 200) {
-                jsonResponse = "ERROR|CONNECTION ERROR|" + serverResponse + "|" + urlConnection.getResponseMessage();
+            if (serverResponse != HttpURLConnection.HTTP_OK) {
+                jsonResponse = context.getString(R.string.connection_base_error_message) + serverResponse + "|" + urlConnection.getResponseMessage();
                 return jsonResponse;
             }
 

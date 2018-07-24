@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name">News App (Stage 1)</string>
     <string name="no_news_loaded">No News Loaded.\n\nEnter a new search parameter and/or\ncheck your internet connection.</string>
     <string name="connection_base_error_message">ERROR|CONNECTION ERROR|</string>
@@ -6,7 +6,7 @@
     <string name="search">Search</string>
     <string name="loading_news">Loading your news…</string>
     <string name="search_pattern_alert">Enter a search pattern to try again…</string>
-    <string name="base_search_url">"https://content.guardianapis.com/search?q=SEARCHKEY&amp;page-size=50&amp;orderBy=newest&amp;api-key=bd606002-1bfe-4cc4-977d-f46687ab57e9"</string>
+    <string name="base_search_url">"https://content.guardianapis.com/search?q=SEARCHKEY&amp;page-size=50&amp;show-tags=contributor&amp;orderBy=newest&amp;api-key=bd606002-1bfe-4cc4-977d-f46687ab57e9"</string>
     <string name="no_network_instructions">No network connection present. Enter a search pattern to try again…</string>
     <string name="search_for">search for…</string>
     <string name="url_connection_response">Url connection response#</string>

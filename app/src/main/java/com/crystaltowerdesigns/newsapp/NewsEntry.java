@@ -21,7 +21,7 @@ public class NewsEntry implements Parcelable {
     private final String webURL;
     private final String webPublicationDate;
     private String webTitle;
-    private String author = "";
+    private String contributor = "";
 
     /**
      * {LINK NewsEntry}
@@ -30,16 +30,17 @@ public class NewsEntry implements Parcelable {
      * @param webTitle           String containing the news Title
      * @param sectionName        String containing the news Tag
      * @param webURL             String containing the news Tag
+     * @param contributor        String containing contributor of article
      * @param webPublicationDate String containing the news webPublicationDate
      */
-    public NewsEntry(String id, String webTitle, String sectionName, String webURL, String webPublicationDate) {
+    public NewsEntry(String id, String webTitle, String sectionName, String webURL, String contributor, String webPublicationDate) {
         this.id = id;
         this.webTitle = webTitle;
         int pos = webTitle.lastIndexOf("|");
         if (pos > 0) {
-            this.author = webTitle.substring(pos + 2);
             this.webTitle = webTitle.substring(0, pos - 1);
         }
+        this.contributor = contributor;
         this.sectionName = sectionName;
         this.webURL = webURL;
         this.webPublicationDate = webPublicationDate;
@@ -51,8 +52,8 @@ public class NewsEntry implements Parcelable {
         webTitle = in.readString();
         sectionName = in.readString();
         webURL = in.readString();
+        contributor = in.readString();
         webPublicationDate = in.readString();
-        author = in.readString();
     }
 
     @SuppressWarnings("unused")
@@ -76,8 +77,8 @@ public class NewsEntry implements Parcelable {
         return webPublicationDate;
     }
 
-    public String getAuthor() {
-        return author;
+    public String getContributor() {
+        return contributor;
     }
 
     @Override
@@ -92,8 +93,8 @@ public class NewsEntry implements Parcelable {
         parcel.writeString(webTitle);
         parcel.writeString(sectionName);
         parcel.writeString(webURL);
+        parcel.writeString(contributor);
         parcel.writeString(webPublicationDate);
-        parcel.writeString(author);
     }
 
 

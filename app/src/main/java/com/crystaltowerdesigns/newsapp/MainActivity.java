@@ -33,6 +33,7 @@ import java.util.ArrayList;
  * News App (Stage 1)
  * <p>
  * Created by Jeff Palutke on 7/22/2018
+ * Revisised 7/23/2018
  */
 public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<ArrayList<NewsEntry>> {
 
@@ -204,22 +205,24 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
         private final String TAG = MainActivity.class.getSimpleName();
         private final String url;
+        private Context context;
 
         NewsLoader(Context context, String url) {
             super(context);
             this.url = url;
+            this.context = context;
         }
 
         @Override
         public ArrayList<NewsEntry> loadInBackground() {
             ArrayList<NewsEntry> newNewsEntryList = new ArrayList<>();
-            HttpHandler sh = new HttpHandler();
+            HttpHandler httpHandler = new HttpHandler(context);
             String jsonString;
 
             // Ask server for the json response
             // store it in jsonString
             try {
-                jsonString = sh.makeHttpRequest(createUrl(url));
+                jsonString = httpHandler.makeHttpRequest(createUrl(url));
             } catch (IOException e) {
                 return null;
             }
@@ -232,18 +235,57 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                     JSONObject jsonObj = new JSONObject(jsonString);
                     JSONObject jsonResponse = jsonObj.getJSONObject("response");
                     JSONArray jsonArrayNewsEntries = jsonResponse.getJSONArray("results");
+                    JSONArray jsonArrayTags;
 
                     // looping through all entries
                     for (int i = 0; i < jsonArrayNewsEntries.length(); i++) {
-                        JSONObject c = jsonArrayNewsEntries.getJSONObject(i);
+                        JSONObject NewsEntryJSONObject = jsonArrayNewsEntries.getJSONObject(i);
+
+                        // check tags for contributors
+                        jsonArrayTags = NewsEntryJSONObject.getJSONArray("tags");
+
+                        String contributors = "";
+                        String lastName;
+                        String firstName;
+
+                        for (int i2 = 0; i2 < jsonArrayTags.length(); i2++) {
+                            JSONObject jsonArrayTagsJSONObject = jsonArrayTags.getJSONObject(i2);
+                            // is this a contributor?
+                            if (jsonArrayTagsJSONObject.getString("type").equals("contributor")) {
+                                lastName = jsonArrayTagsJSONObject.getString("lastName");
+                                firstName = jsonArrayTagsJSONObject.getString("firstName");
+                                // if we found previous contributors,
+                                // separate with a space/pipe/space sequence
+                                if (!contributors.equals(""))
+                                    contributors = contributors + " | " + firstName;
+                                else
+                                    contributors = firstName;
+                                if (!firstName.equals(""))
+                                    contributors = contributors + " " + lastName;
+                            }
+                        }
+
+                        // InitCap the combined names
+                        String[] splitName = contributors.toLowerCase().split(" ");
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (int i3 = 0; i3 < splitName.length; i3++) {
+                            String individualWord = splitName[i3];
+                            if (i3 > 0 && individualWord.length() > 0) {
+                                stringBuilder.append(" ");
+                            }
+                            if (individualWord.length() > 0)
+                                stringBuilder.append(individualWord.substring(0, 1).toUpperCase()).append(individualWord.substring(1));
+                        }
+                        contributors = stringBuilder.toString();
 
                         // add each child node to our newNewsEntryList
                         newNewsEntryList.add(new NewsEntry(
-                                c.getString("id"),
-                                c.getString("webTitle"),
-                                c.getString("sectionName"),
-                                c.getString("webUrl"),
-                                c.getString("webPublicationDate")
+                                NewsEntryJSONObject.getString("id"),
+                                NewsEntryJSONObject.getString("webTitle"),
+                                NewsEntryJSONObject.getString("sectionName"),
+                                NewsEntryJSONObject.getString("webUrl"),
+                                contributors,
+                                NewsEntryJSONObject.getString("webPublicationDate")
                         ));
                     }
                 } catch (final JSONException e) {
@@ -256,7 +298,9 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                         String connection_base_error_message = getContext().getString(R.string.connection_base_error_message);
                         String errNumber = jsonString.substring(connection_base_error_message.length(), jsonString.lastIndexOf("|"));
                         String errMsg = jsonString.substring(jsonString.lastIndexOf("|") + 1);
-                        newNewsEntryList.add(new NewsEntry(TAG, getContext().getString(R.string.url_connection_response) + errNumber + ": " + errMsg, getContext().getString(R.string.error), getContext().getString(R.string.error), getContext().getString(R.string.error)));
+                        newNewsEntryList.add(new NewsEntry(TAG, getContext().getString(R.string.url_connection_response) + errNumber + ": " + errMsg,
+                                getContext().getString(R.string.error), getContext().getString(R.string.error),
+                                getContext().getString(R.string.error), getContext().getString(R.string.error)));
                     }
             }
             return newNewsEntryList;

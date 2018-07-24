@@ -4,16 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingBottom="8dp"
-    android:paddingTop="8dp">
+    android:paddingBottom="@dimen/mini_padding"
+    android:paddingTop="@dimen/mini_padding">
 
     <TextView
         android:id="@+id/webTitle_textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingEnd="8dp"
-        android:paddingStart="8dp"
-        android:textSize="24sp"
+        android:paddingEnd="@dimen/mini_padding"
+        android:paddingStart="@dimen/mini_padding"
+        android:textSize="@dimen/title_text_size"
         android:textStyle="bold"
         tools:text="News TITLE" />
 
@@ -26,18 +26,18 @@
             android:id="@+id/author_textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingEnd="8dp"
-            android:paddingStart="8dp"
-            android:textSize="14sp"
+            android:paddingEnd="@dimen/mini_padding"
+            android:paddingStart="@dimen/mini_padding"
+            android:textSize="@dimen/normal_text_size"
             tools:text="Author" />
 
         <TextView
             android:id="@+id/news_webPublicationDate_textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingEnd="8dp"
-            android:paddingStart="8dp"
-            android:textSize="14sp"
+            android:paddingEnd="@dimen/mini_padding"
+            android:paddingStart="@dimen/mini_padding"
+            android:textSize="@dimen/normal_text_size"
             tools:text="News Date" />
     </LinearLayout>
 
@@ -45,12 +45,12 @@
         android:id="@+id/section_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="@dimen/mini_padding"
         android:background="@color/colorTag"
-        android:paddingEnd="8dp"
-        android:paddingStart="8dp"
+        android:paddingEnd="@dimen/mini_padding"
+        android:paddingStart="@dimen/mini_padding"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="@dimen/normal_text_size"
         android:textStyle="italic"
         tools:text="News TAG" />
 
