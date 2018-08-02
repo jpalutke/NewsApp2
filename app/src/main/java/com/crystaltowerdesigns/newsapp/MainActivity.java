@@ -108,9 +108,11 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.app_bar_menu, menu);
         MenuItem searchItem = menu.findItem(R.id.action_search);
+
         final SearchView searchView =
                 (SearchView) searchItem.getActionView();
         searchView.setQueryHint(getString(R.string.search_for));
+        searchView.setQuery(searchKey, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -134,6 +136,20 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         });
         return super.onCreateOptionsMenu(menu);
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent settingsActivityIntent = new Intent(this, SettingsActivity.class);
+                startActivity(settingsActivityIntent);
+                return true;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     @NonNull
     @Override
@@ -199,6 +215,18 @@ public class MainActivity extends AppCompatActivity implements android.support.v
             public void onItemClick(NewsEntry newsEntry) {
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == SETTINGS_INTENT) {
+            // Was request successful
+            if (resultCode == RESULT_OK) {
+                // Settings were altered
+                // May still be the same, but at least one was 'viewed'
+            }
+        }
     }
 
     static class NewsLoader extends AsyncTaskLoader<ArrayList<NewsEntry>> {

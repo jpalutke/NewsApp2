@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/title_activity_settings">
+
+    <EditTextPreference
+        android:defaultValue="@string/settings_page_size_default"
+        android:inputType="numberDecimal"
+        android:key="@string/settings_page_size_key"
+        android:selectAllOnFocus="true"
+        android:title="@string/settings_page_size_label" />
+
+    <MultiSelectListPreference
+        android:defaultValue="@array/settings_search_type_default_values"
+        android:entries="@array/settings_search_type_array"
+        android:entryValues="@array/settings_search_type_array"
+        android:key="settings_search_type_key"
+        android:title="@string/settings_search_type_label" />
+
+    <EditTextPreference
+        android:defaultValue="test default"
+        android:inputType="text"
+        android:key="@string/default_search_key"
+        android:selectAllOnFocus="true"
+        android:title="Search KEY:" />
+</PreferenceScreen>

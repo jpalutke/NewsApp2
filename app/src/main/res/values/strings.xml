@@ -12,4 +12,33 @@
     <string name="url_connection_response">Url connection response#</string>
     <string name="default_search_key">US News</string>
     <string name="search_key_marker">SEARCHKEY</string>
+    <string name="menu_Settings_Text">Settings</string>
+    <string name="title_activity_settings">News Settings</string>
+
+    <string name="settings_page_size_label">Items Per Page</string>
+    <string name="settings_page_size_key" translatable="false">page_size</string>
+    <string name="settings_page_size_default" translatable="false">10</string>
+
+    <string name="settings_search_type_label">Search Type</string>
+    <string name="settings_search_type_key">search_type</string>
+    <string-array name="settings_search_type_array">
+        <item>Title</item>
+        <item>Contributor</item>
+        <item>Section</item>
+    </string-array>
+    <string-array name="settings_search_type_default_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+
+    <string name="settings_date_from_label">Starting Date</string>
+    <string name="settings_date_from_key" translatable="false">July 1, 2018</string>
+    <string name="settings_date_from_default" translatable="false">Jan 1, 2018</string>
+
+    <string name="settings_date_thru_label">Ending Date</string>
+    <string name="settings_date_thru_key" translatable="false">July 30, 2018</string>
+    <string name="settings_date_thru_default" translatable="false">July 30, 2018</string>
+
 </resources>
