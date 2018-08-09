@@ -21,7 +21,7 @@ public class NewsEntry implements Parcelable {
     private final String webURL;
     private final String webPublicationDate;
     private String webTitle;
-    private String contributor = "";
+    private final String contributor;
 
     /**
      * {LINK NewsEntry}
@@ -96,6 +96,4 @@ public class NewsEntry implements Parcelable {
         parcel.writeString(contributor);
         parcel.writeString(webPublicationDate);
     }
-
-
 }

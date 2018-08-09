@@ -15,7 +15,7 @@
         android:paddingStart="@dimen/mini_padding"
         android:textSize="@dimen/title_text_size"
         android:textStyle="bold"
-        tools:text="News TITLE" />
+        tools:text="@string/tools_title" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +29,7 @@
             android:paddingEnd="@dimen/mini_padding"
             android:paddingStart="@dimen/mini_padding"
             android:textSize="@dimen/normal_text_size"
-            tools:text="Author" />
+            tools:text="@string/tools_author" />
 
         <TextView
             android:id="@+id/news_webPublicationDate_textView"
@@ -38,7 +38,7 @@
             android:paddingEnd="@dimen/mini_padding"
             android:paddingStart="@dimen/mini_padding"
             android:textSize="@dimen/normal_text_size"
-            tools:text="News Date" />
+            tools:text="@string/tools_date" />
     </LinearLayout>
 
     <TextView
@@ -49,9 +49,10 @@
         android:background="@color/colorTag"
         android:paddingEnd="@dimen/mini_padding"
         android:paddingStart="@dimen/mini_padding"
+        android:layout_marginTop="@dimen/mini_padding"
         android:textColor="@android:color/white"
         android:textSize="@dimen/normal_text_size"
         android:textStyle="italic"
-        tools:text="News TAG" />
+        tools:text="@string/tools_tag" />
 
 </LinearLayout>

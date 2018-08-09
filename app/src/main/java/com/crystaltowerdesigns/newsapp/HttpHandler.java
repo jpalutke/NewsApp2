@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 
 class HttpHandler {
 
-    private Context context;
+    private final Context context;
 
     public HttpHandler(Context context) {
         this.context = context;

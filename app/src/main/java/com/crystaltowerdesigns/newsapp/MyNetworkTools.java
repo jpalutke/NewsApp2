@@ -23,7 +23,7 @@ class MyNetworkTools {
         try {
             connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            connected = (networkInfo != null) && networkInfo.isAvailable() && networkInfo.isConnected();
+            connected = (networkInfo != null) && networkInfo.isConnected();
             return !connected;
         } catch (Exception e) {
             // catch block intentionally left empty
@@ -31,10 +31,4 @@ class MyNetworkTools {
         return !connected;
     }
 
-    /**
-     * @return boolean true if we are network connected, false if we are not connected
-     */
-    public boolean Online() {
-        return !Offline();
-    }
 }

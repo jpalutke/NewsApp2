@@ -62,13 +62,11 @@ class NewsEntryAdapter extends RecyclerView.Adapter<NewsEntryAdapter.MyViewHolde
             webTitle.setText(newsEntry.getWebTitle());
             sectionName.setText(newsEntry.getSectionName());
             webPublicationDate.setText(newsEntry.getWebPublicationDate().replace("T"," ").replace("Z",""));
-
             author.setText(newsEntry.getContributor());
             if (newsEntry.getContributor().equals(""))
                 author.setVisibility(View.GONE);
             else
                 author.setVisibility(View.VISIBLE);
-
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -3,15 +3,16 @@ package com.crystaltowerdesigns.newsapp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -28,37 +29,111 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * News App (Stage 1)
  * <p>
  * Created by Jeff Palutke on 7/22/2018
- * Revisised 7/23/2018
+ * Revised 8/8/2018
  */
+
 public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<ArrayList<NewsEntry>> {
 
     private final ArrayList<NewsEntry> newsEntryList = new ArrayList<>();
-    private final String defaultSearchKey = "US News";
     private final MyNetworkTools network = new MyNetworkTools(this);
+    private SharedPreferences sharedPreferences;
     private android.support.v7.widget.RecyclerView recyclerView;
     private TextView statusTextView;
     private NewsEntryAdapter adapter;
-    private String searchKey = defaultSearchKey;
+    private int daysPast = -1;
+    private int pageSize = -1;
+    private String searchKey = "";
 
     /**
-     * {@LINK searchURL}
+     * {@LINK buildURI}
      *
      * @return String containing the modified search URL with the user designated search string inserted into it
      */
-    private String searchURL() {
-        String url = this.getString(R.string.base_search_url);
-        return (url.replace(getString(R.string.search_key_marker), searchKey));
+    private String buildURI() {
+        // set calendar to today's date
+        java.util.Calendar calendar = Calendar.getInstance();
+        // subtract a day for each 'daysPast' specified bby the user
+        for (int day = 1; day < daysPast; day++)
+            calendar.roll(Calendar.DATE, false);
+        // format into a date string like 2018-01-23
+        @SuppressLint("DefaultLocale") String targetFromDate = String.format("%tY-%<tm-%<td", calendar.getTime());
+
+        // see: Hiding API keys from your Android repository
+        //  https://medium.com/code-better/hiding-api-keys-from-your-android-repository-b23f5598b906
+        String ApiKey = BuildConfig.ApiKey;
+
+        // create a URI to request the desired news from the server
+        Uri.Builder builder = new Uri.Builder();
+        //noinspection SpellCheckingInspection
+        builder.scheme("https")
+                .authority("content.guardianapis.com")
+                .appendPath("search")
+                .appendQueryParameter("q", "\"" + searchKey + "\"")
+                .appendQueryParameter("page-size", "" + pageSize)
+                .appendQueryParameter("show-tags", "contributor")
+                .appendQueryParameter("from-date", targetFromDate)
+                .appendQueryParameter("orderBy", "newest")
+                .appendQueryParameter("api-key", ApiKey);
+        return builder.build().toString();
+    }
+
+    private boolean PreferenceUnequalInt(int resourceID, int value) {
+        if (sharedPreferences.contains(getString(resourceID))) {
+            String storedInt = sharedPreferences.getString(getString(resourceID), "0");
+            return !(storedInt.equals("" + value));
+        }
+        return true;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private boolean PreferenceUnequalString(int resourceID, String value) {
+        if (sharedPreferences.contains(getString(resourceID))) {
+            String storedString = sharedPreferences.getString(getString(resourceID), "");
+            return !storedString.equals("" + value);
+        }
+        return true;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // If we haven't yet set the defaults from
+        // our strings file then set the default values
+        if (searchKey.length() == 0)
+            searchKey = getString(R.string.search_text_default);
+        if (pageSize < 1)
+            pageSize = Integer.parseInt(this.getString(R.string.page_size_default));
+        if (daysPast < 0)
+            daysPast = Integer.parseInt(this.getString(R.string.days_prior_default));
+
+        // get access to our preferences/settings
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // if settings/preferences are missing or differ from the current
+        // variable values a refresh of the news source is needed.
+        boolean refreshNeeded = PreferenceUnequalInt(R.string.days_prior_key, daysPast) ||
+                PreferenceUnequalInt(R.string.page_size_key, pageSize) ||
+                PreferenceUnequalString(R.string.search_text_key, searchKey);
+        if (refreshNeeded) {
+            int newDaysPast = Integer.parseInt(sharedPreferences.getString(getString(R.string.days_prior_key), "-1"));
+            int newPageSize = Integer.parseInt(sharedPreferences.getString(getString(R.string.page_size_key), "-1"));
+            String newSearchKey = sharedPreferences.getString(getString(R.string.search_text_key), "");
+            // if values were found in the preferences then update our variables
+            if (newDaysPast >= 0)
+                daysPast = newDaysPast;
+            if (newPageSize >= 1)
+                pageSize = newPageSize;
+            if (newSearchKey.length() > 0)
+                searchKey = newSearchKey;
+        }
 
         // add our toolbar
         Toolbar myToolbar = findViewById(R.id.news_app_toolbar);
@@ -68,9 +143,6 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         statusTextView = findViewById(R.id.status_textView);
         recyclerView = findViewById(R.id.recycler_view);
 
-        // load our news
-        android.support.v4.app.LoaderManager.getInstance(this).initLoader(0, null, this).forceLoad();
-
         // display network Offline or Loading News
         // in our status view.
         if (network.Offline()) {
@@ -78,6 +150,16 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         } else {
             statusTextView.setText(getString(R.string.no_network_instructions));
         }
+
+        // check to see if our search settings have been altered.
+        // If they have, then reset the loader.
+        if (refreshNeeded) {
+            // restart loader / load fresh news
+            android.support.v4.app.LoaderManager.getInstance(MainActivity.this).restartLoader(0, null, MainActivity.this).forceLoad();
+
+        } else
+            // existing loader / load news
+            android.support.v4.app.LoaderManager.getInstance(this).initLoader(0, null, this).forceLoad();
 
         // create our data adapter
         adapter = new NewsEntryAdapter(this, newsEntryList, new NewsEntryAdapter.OnItemClickListener() {
@@ -107,33 +189,6 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.app_bar_menu, menu);
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-
-        final SearchView searchView =
-                (SearchView) searchItem.getActionView();
-        searchView.setQueryHint(getString(R.string.search_for));
-        searchView.setQuery(searchKey, false);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                // use the user specified query or
-                // default search if nothing was entered
-                if (query.equals(""))
-                    searchKey = defaultSearchKey;
-                else
-                    searchKey = query;
-                // load the news based on the above search pattern
-                android.support.v4.app.LoaderManager.getInstance(MainActivity.this).restartLoader(0, null, MainActivity.this).forceLoad();
-                // hide the soft keyboard
-                searchView.clearFocus();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                return false;
-            }
-        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -150,11 +205,10 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         return super.onOptionsItemSelected(item);
     }
 
-
     @NonNull
     @Override
     public android.support.v4.content.Loader<ArrayList<NewsEntry>> onCreateLoader(int i, @Nullable Bundle bundle) {
-        return new NewsLoader(MainActivity.this, searchURL());
+        return new NewsLoader(MainActivity.this, buildURI());
     }
 
     @SuppressLint("SetTextI18n")
@@ -217,23 +271,11 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check which request we're responding to
-        if (requestCode == SETTINGS_INTENT) {
-            // Was request successful
-            if (resultCode == RESULT_OK) {
-                // Settings were altered
-                // May still be the same, but at least one was 'viewed'
-            }
-        }
-    }
-
     static class NewsLoader extends AsyncTaskLoader<ArrayList<NewsEntry>> {
 
         private final String TAG = MainActivity.class.getSimpleName();
         private final String url;
-        private Context context;
+        final Context context;
 
         NewsLoader(Context context, String url) {
             super(context);
@@ -272,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                         // check tags for contributors
                         jsonArrayTags = NewsEntryJSONObject.getJSONArray("tags");
 
-                        String contributors = "";
+                        StringBuilder contributors = new StringBuilder();
                         String lastName;
                         String firstName;
 
@@ -284,17 +326,17 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                                 firstName = jsonArrayTagsJSONObject.getString("firstName");
                                 // if we found previous contributors,
                                 // separate with a space/pipe/space sequence
-                                if (!contributors.equals(""))
-                                    contributors = contributors + " | " + firstName;
+                                if (!contributors.toString().equals(""))
+                                    contributors.append(" | ").append(firstName);
                                 else
-                                    contributors = firstName;
+                                    contributors = new StringBuilder(firstName);
                                 if (!firstName.equals(""))
-                                    contributors = contributors + " " + lastName;
+                                    contributors.append(" ").append(lastName);
                             }
                         }
 
                         // InitCap the combined names
-                        String[] splitName = contributors.toLowerCase().split(" ");
+                        String[] splitName = contributors.toString().toLowerCase().split(" ");
                         StringBuilder stringBuilder = new StringBuilder();
                         for (int i3 = 0; i3 < splitName.length; i3++) {
                             String individualWord = splitName[i3];
@@ -304,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                             if (individualWord.length() > 0)
                                 stringBuilder.append(individualWord.substring(0, 1).toUpperCase()).append(individualWord.substring(1));
                         }
-                        contributors = stringBuilder.toString();
+                        contributors = new StringBuilder(stringBuilder.toString());
 
                         // add each child node to our newNewsEntryList
                         newNewsEntryList.add(new NewsEntry(
@@ -312,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                                 NewsEntryJSONObject.getString("webTitle"),
                                 NewsEntryJSONObject.getString("sectionName"),
                                 NewsEntryJSONObject.getString("webUrl"),
-                                contributors,
+                                contributors.toString(),
                                 NewsEntryJSONObject.getString("webPublicationDate")
                         ));
                     }

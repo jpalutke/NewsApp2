@@ -23,6 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/settings_toolbar"
-        tools:text="Preferences Fragment"></fragment>
+        tools:text="Preferences Fragment" />
 
 </RelativeLayout>
