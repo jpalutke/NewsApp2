@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.BuildConfig;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -35,7 +36,17 @@ import java.util.Calendar;
  * News App (Stage 1)
  * <p>
  * Created by Jeff Palutke on 7/22/2018
- * Revised 8/8/2018
+ *
+ * Revised 8/8/2018 for 1st Project Submission
+ *
+ * Revised 8/9/2018 for 2nd Project Submission
+ *      3 revisions made:
+ *          1) in buildURI switched calendar.roll to calendar.add to correct the month/year not rolling over
+ *          2) in buildURI switched
+ *              .appendQueryParameter("orderBy", "newest") to
+ *              .appendQueryParameter("order-by", "newest")
+ *          3) corrected a Json exception when a field was not being found (lastName/firstName)
+ *              by implementing "if (jsonArrayTagsJSONObject.has(String))"
  */
 
 public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<ArrayList<NewsEntry>> {
@@ -56,12 +67,11 @@ public class MainActivity extends AppCompatActivity implements android.support.v
      * @return String containing the modified search URL with the user designated search string inserted into it
      */
     private String buildURI() {
-        // set calendar to today's date
+        // set calendar to today's date to today and adjust by 'daysPast' specified by the user
         java.util.Calendar calendar = Calendar.getInstance();
-        // subtract a day for each 'daysPast' specified bby the user
-        for (int day = 1; day < daysPast; day++)
-            calendar.roll(Calendar.DATE, false);
-        // format into a date string like 2018-01-23
+        calendar.add(Calendar.DATE, -daysPast);
+
+        // format into a date string like 2018-01-23 as needed by the GuardianAPI
         @SuppressLint("DefaultLocale") String targetFromDate = String.format("%tY-%<tm-%<td", calendar.getTime());
 
         // see: Hiding API keys from your Android repository
@@ -78,9 +88,11 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                 .appendQueryParameter("page-size", "" + pageSize)
                 .appendQueryParameter("show-tags", "contributor")
                 .appendQueryParameter("from-date", targetFromDate)
-                .appendQueryParameter("orderBy", "newest")
-                .appendQueryParameter("api-key", ApiKey);
-        return builder.build().toString();
+                .appendQueryParameter("api-key", ApiKey)
+                .appendQueryParameter("order-by", "newest");
+        String URI = builder.build().toString();
+        Log.v(this.getLocalClassName(), "URI built: \"" + URI + "\"");
+        return URI;
     }
 
     private boolean PreferenceUnequalInt(int resourceID, int value) {
@@ -322,8 +334,14 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                             JSONObject jsonArrayTagsJSONObject = jsonArrayTags.getJSONObject(i2);
                             // is this a contributor?
                             if (jsonArrayTagsJSONObject.getString("type").equals("contributor")) {
-                                lastName = jsonArrayTagsJSONObject.getString("lastName");
-                                firstName = jsonArrayTagsJSONObject.getString("firstName");
+                                if (jsonArrayTagsJSONObject.has("lastName"))
+                                    lastName = jsonArrayTagsJSONObject.getString("lastName");
+                                else
+                                    lastName = "";
+                                if (jsonArrayTagsJSONObject.has("firstName"))
+                                    firstName = jsonArrayTagsJSONObject.getString("firstName");
+                                else
+                                    firstName = "";
                                 // if we found previous contributors,
                                 // separate with a space/pipe/space sequence
                                 if (!contributors.toString().equals(""))
